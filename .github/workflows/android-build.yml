@@ -12,6 +12,7 @@ jobs:
 
     container:
       image: mobiledevops/android-sdk-image:34.0.0-jdk17
+      options: --user 1001
 
     steps:
     - name: Checkout code
