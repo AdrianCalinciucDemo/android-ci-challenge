@@ -1,0 +1,55 @@
+name: Android CI Challenge
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image: mobiledevops/android-sdk-image:34.0.0-jdk17
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up environment
+      run: |
+        echo "Setting build mode"
+        echo "BUILD_MODE=${{ env.BUILD_MODE || 'debug' }}" >> $GITHUB_ENV
+
+    - name: Simulate app builds
+      run: |
+        mkdir -p android_bundle/output/onpremapps
+        echo '{"dummy": "This simulates an APK"}' > android_bundle/output/onpremapps/dummy.apk
+        echo "Fake APK checksum:"
+        sha1sum android_bundle/output/onpremapps/dummy.apk
+
+    - name: Simulate JSON configuration
+      run: |
+        cat > android_bundle/output/onpremapps/installation.config.json <<EOF
+        {
+          "server_configuration": {
+            "server_ip": "127.0.0.1",
+            "site_code": "TEST_SITE"
+          },
+          "apk_definitions": {
+            "dummy.apk": {
+              "package_name": "com.example.dummy"
+            }
+          }
+        }
+        EOF
+        cat android_bundle/output/onpremapps/installation.config.json
+
+    - name: Archive simulated build
+      run: |
+        zip -r signage-all.zip android_bundle/output/
+    - uses: actions/upload-artifact@v4
+      with:
+        name: signage-bundle
+        path: signage-all.zip
